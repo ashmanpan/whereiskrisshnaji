@@ -32,7 +32,7 @@ function App() {
   return (
     <div className="app">
       <header className="header">
-        <h1>Where is Krishna?</h1>
+        <h1>Where is Krishnaji?</h1>
         <div className="legend">
           <div className="legend-item">
             <span className="legend-color planned"></span>

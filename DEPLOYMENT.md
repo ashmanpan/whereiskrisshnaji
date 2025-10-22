@@ -12,7 +12,7 @@ git init
 git add .
 
 # Create initial commit
-git commit -m "Initial commit: Where is Krishna travel tracker"
+git commit -m "Initial commit: Where is Krishnaji travel tracker"
 
 # Add remote repository (using your provided GitHub URL)
 git remote add origin https://github.com/ashmanpan/whereiskrisshnaji.git

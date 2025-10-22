@@ -1,6 +1,6 @@
-# Where is Krishna?
+# Where is Krishnaji?
 
-A travel tracking application showing Krishna's planned and actual locations on a calendar and map.
+A travel tracking application showing Krishnaji's planned and actual locations on a calendar and map.
 
 ## Features
 
