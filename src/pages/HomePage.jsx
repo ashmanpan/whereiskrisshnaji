@@ -7,6 +7,7 @@ import LocationList from '../components/LocationList'
 import ListView from '../components/ListView'
 import TimelineView from '../components/TimelineView'
 import travelDataInitial from '../data/travelData.json'
+import locationService from '../services/locationService'
 import '../App.css'
 
 function HomePage() {
@@ -16,13 +17,24 @@ function HomePage() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Load locations from localStorage or use initial data
-    const savedLocations = localStorage.getItem('travelLocations')
-    if (savedLocations) {
-      setLocations(JSON.parse(savedLocations))
-    } else {
-      setLocations(travelDataInitial.locations)
+    // Load locations from API (with localStorage fallback)
+    const loadLocations = async () => {
+      try {
+        const data = await locationService.getAllLocations()
+        setLocations(data.length > 0 ? data : travelDataInitial.locations)
+      } catch (error) {
+        console.error('Error loading locations:', error)
+        // Fallback to localStorage
+        const savedLocations = localStorage.getItem('travelLocations')
+        if (savedLocations) {
+          setLocations(JSON.parse(savedLocations))
+        } else {
+          setLocations(travelDataInitial.locations)
+        }
+      }
     }
+
+    loadLocations()
   }, [])
 
   const getLocationsForDate = (date) => {

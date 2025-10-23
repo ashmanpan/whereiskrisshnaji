@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import travelDataInitial from '../data/travelData.json'
+import locationService from '../services/locationService'
 import './AdminPanel.css'
 
 function AdminPanel() {
@@ -23,6 +24,8 @@ function AdminPanel() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [message, setMessage] = useState('')
   const [fetchingCoords, setFetchingCoords] = useState(false)
+  const [syncing, setSyncing] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,13 +33,8 @@ function AdminPanel() {
       return
     }
 
-    // Load locations from localStorage or use initial data
-    const savedLocations = localStorage.getItem('travelLocations')
-    if (savedLocations) {
-      setLocations(JSON.parse(savedLocations))
-    } else {
-      setLocations(travelDataInitial.locations)
-    }
+    // Load locations from API (with localStorage fallback)
+    loadLocations()
 
     // Load recent cities
     const savedRecent = localStorage.getItem('recentCities')
@@ -44,6 +42,26 @@ function AdminPanel() {
       setRecentCities(JSON.parse(savedRecent))
     }
   }, [isAuthenticated, navigate])
+
+  const loadLocations = async () => {
+    setLoading(true)
+    try {
+      const data = await locationService.getAllLocations()
+      setLocations(data.length > 0 ? data : travelDataInitial.locations)
+    } catch (error) {
+      console.error('Error loading locations:', error)
+      showMessage('Error loading locations from cloud. Using local data.')
+      // Fallback to localStorage
+      const savedLocations = localStorage.getItem('travelLocations')
+      if (savedLocations) {
+        setLocations(JSON.parse(savedLocations))
+      } else {
+        setLocations(travelDataInitial.locations)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const saveLocations = (newLocations) => {
     setLocations(newLocations)
@@ -92,51 +110,96 @@ function AdminPanel() {
     }
   }
 
-  const handleAddLocation = () => {
+  const handleAddLocation = async () => {
     if (!newLocation.name || !newLocation.fromDate || !newLocation.lat || !newLocation.lng) {
       showMessage('Please fill all required fields')
       return
     }
 
     const location = {
-      id: Math.max(0, ...locations.map(l => l.id)) + 1,
       name: newLocation.name,
       country: newLocation.country,
       type: newLocation.type,
       date: newLocation.fromDate, // Keep for backward compatibility
       fromDate: newLocation.fromDate,
       toDate: newLocation.toDate || newLocation.fromDate, // If no end date, use start date
-      coordinates: {
-        lat: parseFloat(newLocation.lat),
-        lng: parseFloat(newLocation.lng)
-      },
+      latitude: parseFloat(newLocation.lat),
+      longitude: parseFloat(newLocation.lng),
       notes: newLocation.notes
     }
 
-    saveLocations([...locations, location])
+    try {
+      setLoading(true)
+      await locationService.addLocation(location)
+      await loadLocations() // Reload from API
+      showMessage('Location added successfully!')
 
-    // Update recent cities
-    const cityEntry = `${newLocation.name}${newLocation.country ? ', ' + newLocation.country : ''}`
-    const updatedRecent = [cityEntry, ...recentCities.filter(c => c !== cityEntry)].slice(0, 10)
-    setRecentCities(updatedRecent)
-    localStorage.setItem('recentCities', JSON.stringify(updatedRecent))
+      // Update recent cities
+      const cityEntry = `${newLocation.name}${newLocation.country ? ', ' + newLocation.country : ''}`
+      const updatedRecent = [cityEntry, ...recentCities.filter(c => c !== cityEntry)].slice(0, 10)
+      setRecentCities(updatedRecent)
+      localStorage.setItem('recentCities', JSON.stringify(updatedRecent))
 
-    setNewLocation({ name: '', country: '', type: 'planned', fromDate: '', toDate: '', lat: '', lng: '', notes: '' })
-    setShowAddForm(false)
-  }
-
-  const handleDeleteLocation = (id) => {
-    if (window.confirm('Are you sure you want to delete this location?')) {
-      saveLocations(locations.filter(loc => loc.id !== id))
+      setNewLocation({ name: '', country: '', type: 'planned', fromDate: '', toDate: '', lat: '', lng: '', notes: '' })
+      setShowAddForm(false)
+    } catch (error) {
+      console.error('Error adding location:', error)
+      showMessage('Error adding location. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleUpdateType = (id, newType) => {
-    saveLocations(
-      locations.map(loc =>
-        loc.id === id ? { ...loc, type: newType } : loc
-      )
-    )
+  const handleDeleteLocation = async (id) => {
+    if (window.confirm('Are you sure you want to delete this location?')) {
+      try {
+        setLoading(true)
+        await locationService.deleteLocation(id)
+        await loadLocations() // Reload from API
+        showMessage('Location deleted successfully!')
+      } catch (error) {
+        console.error('Error deleting location:', error)
+        showMessage('Error deleting location. Please try again.')
+      } finally {
+        setLoading(false)
+      }
+    }
+  }
+
+  const handleUpdateType = async (id, newType) => {
+    try {
+      setLoading(true)
+      await locationService.updateLocation(id, { type: newType })
+      await loadLocations() // Reload from API
+      showMessage('Location updated successfully!')
+    } catch (error) {
+      console.error('Error updating location:', error)
+      showMessage('Error updating location. Please try again.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSyncToCloud = async () => {
+    if (!window.confirm('This will sync all localStorage data to the cloud. Continue?')) {
+      return
+    }
+
+    try {
+      setSyncing(true)
+      const result = await locationService.syncFromLocalStorage()
+      if (result.success) {
+        await loadLocations() // Reload from API
+        showMessage(`Sync complete! ${result.synced} locations synced, ${result.failed} failed.`)
+      } else {
+        showMessage(result.message || 'No data to sync')
+      }
+    } catch (error) {
+      console.error('Error syncing to cloud:', error)
+      showMessage('Error syncing to cloud. Please try again.')
+    } finally {
+      setSyncing(false)
+    }
   }
 
   const handleLogout = () => {
@@ -160,10 +223,13 @@ function AdminPanel() {
   return (
     <div className="admin-container">
       <div className="admin-header">
-        <h1>Admin Panel</h1>
+        <h1>Admin Panel {loading && <span className="loading-indicator">Loading...</span>}</h1>
         <div className="admin-actions">
           <button onClick={() => navigate('/')} className="btn-secondary">
             View Site
+          </button>
+          <button onClick={handleSyncToCloud} className="btn-sync" disabled={syncing || loading}>
+            {syncing ? 'Syncing...' : '☁️ Sync to Cloud'}
           </button>
           <button onClick={downloadData} className="btn-secondary">
             Download Data
