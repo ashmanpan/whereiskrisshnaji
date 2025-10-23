@@ -12,13 +12,15 @@ function AdminPanel() {
   const [newLocation, setNewLocation] = useState({
     name: '',
     type: 'planned',
-    date: '',
+    fromDate: '',
+    toDate: '',
     lat: '',
     lng: '',
     notes: ''
   })
   const [showAddForm, setShowAddForm] = useState(false)
   const [message, setMessage] = useState('')
+  const [fetchingCoords, setFetchingCoords] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -46,8 +48,40 @@ function AdminPanel() {
     setTimeout(() => setMessage(''), 3000)
   }
 
+  const fetchCoordinates = async () => {
+    if (!newLocation.name) {
+      showMessage('Please enter a city name first')
+      return
+    }
+
+    setFetchingCoords(true)
+    try {
+      // Using Nominatim (OpenStreetMap) API - free and no API key required
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(newLocation.name)}&format=json&limit=1`
+      )
+      const data = await response.json()
+
+      if (data && data.length > 0) {
+        setNewLocation({
+          ...newLocation,
+          lat: parseFloat(data[0].lat).toFixed(4),
+          lng: parseFloat(data[0].lon).toFixed(4)
+        })
+        showMessage(`Found coordinates for ${newLocation.name}!`)
+      } else {
+        showMessage('Could not find coordinates. Please enter manually.')
+      }
+    } catch (error) {
+      showMessage('Error fetching coordinates. Please enter manually.')
+      console.error('Error fetching coordinates:', error)
+    } finally {
+      setFetchingCoords(false)
+    }
+  }
+
   const handleAddLocation = () => {
-    if (!newLocation.name || !newLocation.date || !newLocation.lat || !newLocation.lng) {
+    if (!newLocation.name || !newLocation.fromDate || !newLocation.lat || !newLocation.lng) {
       showMessage('Please fill all required fields')
       return
     }
@@ -56,7 +90,9 @@ function AdminPanel() {
       id: Math.max(0, ...locations.map(l => l.id)) + 1,
       name: newLocation.name,
       type: newLocation.type,
-      date: newLocation.date,
+      date: newLocation.fromDate, // Keep for backward compatibility
+      fromDate: newLocation.fromDate,
+      toDate: newLocation.toDate || newLocation.fromDate, // If no end date, use start date
       coordinates: {
         lat: parseFloat(newLocation.lat),
         lng: parseFloat(newLocation.lng)
@@ -65,7 +101,7 @@ function AdminPanel() {
     }
 
     saveLocations([...locations, location])
-    setNewLocation({ name: '', type: 'planned', date: '', lat: '', lng: '', notes: '' })
+    setNewLocation({ name: '', type: 'planned', fromDate: '', toDate: '', lat: '', lng: '', notes: '' })
     setShowAddForm(false)
   }
 
@@ -136,14 +172,24 @@ function AdminPanel() {
             <div className="add-form">
               <h3>Add New Location</h3>
               <div className="form-grid">
-                <div className="form-group">
+                <div className="form-group full-width">
                   <label>City Name *</label>
-                  <input
-                    type="text"
-                    value={newLocation.name}
-                    onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
-                    placeholder="e.g., Mumbai"
-                  />
+                  <div className="input-with-button">
+                    <input
+                      type="text"
+                      value={newLocation.name}
+                      onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
+                      placeholder="e.g., Mumbai, India"
+                    />
+                    <button
+                      type="button"
+                      onClick={fetchCoordinates}
+                      className="btn-fetch-coords"
+                      disabled={fetchingCoords || !newLocation.name}
+                    >
+                      {fetchingCoords ? 'Fetching...' : 'Get Coordinates'}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-group">
@@ -158,11 +204,21 @@ function AdminPanel() {
                 </div>
 
                 <div className="form-group">
-                  <label>Date *</label>
+                  <label>From Date *</label>
                   <input
                     type="date"
-                    value={newLocation.date}
-                    onChange={(e) => setNewLocation({ ...newLocation, date: e.target.value })}
+                    value={newLocation.fromDate}
+                    onChange={(e) => setNewLocation({ ...newLocation, fromDate: e.target.value })}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>To Date (optional)</label>
+                  <input
+                    type="date"
+                    value={newLocation.toDate}
+                    onChange={(e) => setNewLocation({ ...newLocation, toDate: e.target.value })}
+                    min={newLocation.fromDate}
                   />
                 </div>
 
@@ -237,7 +293,10 @@ function AdminPanel() {
 
                 <div className="location-details">
                   <div className="detail-item">
-                    <strong>Date:</strong> {new Date(location.date).toLocaleDateString()}
+                    <strong>Date:</strong>{' '}
+                    {location.fromDate && location.toDate && location.fromDate !== location.toDate
+                      ? `${new Date(location.fromDate).toLocaleDateString()} - ${new Date(location.toDate).toLocaleDateString()}`
+                      : new Date(location.date || location.fromDate).toLocaleDateString()}
                   </div>
                   <div className="detail-item">
                     <strong>Coordinates:</strong> {location.coordinates.lat.toFixed(4)}, {location.coordinates.lng.toFixed(4)}
