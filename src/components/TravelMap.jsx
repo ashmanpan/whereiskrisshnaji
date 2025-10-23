@@ -1,5 +1,5 @@
-import React from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet'
+import React, { useEffect } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
@@ -30,6 +30,27 @@ const actualIcon = new L.Icon({
   shadowSize: [41, 41]
 })
 
+// Component to fit map bounds to markers
+function MapBoundsSetter({ locations }) {
+  const map = useMap()
+
+  useEffect(() => {
+    if (locations.length > 0) {
+      const bounds = L.latLngBounds(
+        locations.map(loc => [loc.coordinates.lat, loc.coordinates.lng])
+      )
+
+      // Fit bounds with padding
+      map.fitBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: locations.length === 1 ? 10 : 15 // Zoom in more if single location
+      })
+    }
+  }, [locations, map])
+
+  return null
+}
+
 function TravelMap({ locations }) {
   // Calculate center point based on locations
   const center = locations.length > 0
@@ -49,6 +70,7 @@ function TravelMap({ locations }) {
       zoom={5}
       style={{ height: '100%', width: '100%', minHeight: '500px' }}
     >
+      <MapBoundsSetter locations={locations} />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
