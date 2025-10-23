@@ -1,7 +1,9 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
+import { getTimezoneInfo, getTimeDifference } from '../utils/timezoneUtils'
 import './ListView.css'
 
 function ListView({ locations }) {
+  const [currentTimes, setCurrentTimes] = useState({})
   const sortedLocations = [...locations].sort((a, b) => {
     const dateA = new Date(a.fromDate || a.date)
     const dateB = new Date(b.fromDate || b.date)
@@ -28,6 +30,30 @@ function ListView({ locations }) {
     return `${days} days`
   }
 
+  // Update times every second for all locations
+  useEffect(() => {
+    const updateTimes = () => {
+      const times = {}
+      locations.forEach(location => {
+        const timezoneInfo = getTimezoneInfo(
+          location.name,
+          location.coordinates.lat,
+          location.coordinates.lng
+        )
+        times[location.id] = timezoneInfo
+      })
+      setCurrentTimes(times)
+    }
+
+    // Initial update
+    updateTimes()
+
+    // Update every second
+    const interval = setInterval(updateTimes, 1000)
+
+    return () => clearInterval(interval)
+  }, [locations])
+
   return (
     <div className="list-view">
       <div className="list-view-header">
@@ -43,6 +69,7 @@ function ListView({ locations }) {
               <th>Date Range</th>
               <th>Duration</th>
               <th>Type</th>
+              <th>Local Time & Timezone</th>
               <th>Coordinates</th>
               <th>Notes</th>
             </tr>
@@ -61,6 +88,17 @@ function ListView({ locations }) {
                   <span className={`type-badge ${location.type}`}>
                     {location.type === 'actual' ? 'Actual' : 'Planned'}
                   </span>
+                </td>
+                <td className="timezone-cell">
+                  {currentTimes[location.id] ? (
+                    <div className="timezone-info">
+                      <div className="current-time">{currentTimes[location.id].currentTime}</div>
+                      <div className="timezone-name">{currentTimes[location.id].timezone}</div>
+                      <div className="timezone-offset">{currentTimes[location.id].offsetString}</div>
+                    </div>
+                  ) : (
+                    <div className="timezone-loading">Loading...</div>
+                  )}
                 </td>
                 <td className="coordinates">
                   {location.coordinates.lat.toFixed(4)}, {location.coordinates.lng.toFixed(4)}

@@ -117,6 +117,42 @@
   color: #6b7280;
 }
 
+.timezone-cell {
+  text-align: center;
+}
+
+.timezone-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.current-time {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.timezone-name {
+  font-size: 0.8rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.timezone-offset {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-family: 'Courier New', monospace;
+}
+
+.timezone-loading {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
 .notes {
   max-width: 200px;
   overflow: hidden;
