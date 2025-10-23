@@ -6,6 +6,7 @@ import TravelMap from '../components/TravelMap'
 import LocationList from '../components/LocationList'
 import ListView from '../components/ListView'
 import TimelineView from '../components/TimelineView'
+import ChatBot from '../components/ChatBot'
 import travelDataInitial from '../data/travelData.json'
 import locationService from '../services/locationService'
 import '../App.css'
@@ -141,6 +142,9 @@ function HomePage() {
           {viewMode === 'timeline' && <TimelineView locations={locations} />}
         </div>
       </div>
+
+      {/* AI Chatbot */}
+      <ChatBot />
     </div>
   )
 }
