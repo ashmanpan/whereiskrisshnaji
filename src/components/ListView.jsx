@@ -53,6 +53,7 @@ function ListView({ locations }) {
                 <td className="row-number">{index + 1}</td>
                 <td className="location-name">
                   <strong>{location.name}</strong>
+                  {location.country && <div className="country-text">{location.country}</div>}
                 </td>
                 <td className="date-range">{formatDateRange(location)}</td>
                 <td className="duration">{getDuration(location)}</td>

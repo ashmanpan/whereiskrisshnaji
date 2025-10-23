@@ -11,6 +11,7 @@ function AdminPanel() {
   const [editingId, setEditingId] = useState(null)
   const [newLocation, setNewLocation] = useState({
     name: '',
+    country: '',
     type: 'planned',
     fromDate: '',
     toDate: '',
@@ -18,6 +19,7 @@ function AdminPanel() {
     lng: '',
     notes: ''
   })
+  const [recentCities, setRecentCities] = useState([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [message, setMessage] = useState('')
   const [fetchingCoords, setFetchingCoords] = useState(false)
@@ -34,6 +36,12 @@ function AdminPanel() {
       setLocations(JSON.parse(savedLocations))
     } else {
       setLocations(travelDataInitial.locations)
+    }
+
+    // Load recent cities
+    const savedRecent = localStorage.getItem('recentCities')
+    if (savedRecent) {
+      setRecentCities(JSON.parse(savedRecent))
     }
   }, [isAuthenticated, navigate])
 
@@ -58,17 +66,21 @@ function AdminPanel() {
     try {
       // Using Nominatim (OpenStreetMap) API - free and no API key required
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(newLocation.name)}&format=json&limit=1`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(newLocation.name)}&format=json&limit=1&addressdetails=1`
       )
       const data = await response.json()
 
       if (data && data.length > 0) {
+        const result = data[0]
+        const country = result.address?.country || ''
+
         setNewLocation({
           ...newLocation,
-          lat: parseFloat(data[0].lat).toFixed(4),
-          lng: parseFloat(data[0].lon).toFixed(4)
+          lat: parseFloat(result.lat).toFixed(4),
+          lng: parseFloat(result.lon).toFixed(4),
+          country: country
         })
-        showMessage(`Found coordinates for ${newLocation.name}!`)
+        showMessage(`Found: ${newLocation.name}, ${country}`)
       } else {
         showMessage('Could not find coordinates. Please enter manually.')
       }
@@ -89,6 +101,7 @@ function AdminPanel() {
     const location = {
       id: Math.max(0, ...locations.map(l => l.id)) + 1,
       name: newLocation.name,
+      country: newLocation.country,
       type: newLocation.type,
       date: newLocation.fromDate, // Keep for backward compatibility
       fromDate: newLocation.fromDate,
@@ -101,7 +114,14 @@ function AdminPanel() {
     }
 
     saveLocations([...locations, location])
-    setNewLocation({ name: '', type: 'planned', fromDate: '', toDate: '', lat: '', lng: '', notes: '' })
+
+    // Update recent cities
+    const cityEntry = `${newLocation.name}${newLocation.country ? ', ' + newLocation.country : ''}`
+    const updatedRecent = [cityEntry, ...recentCities.filter(c => c !== cityEntry)].slice(0, 10)
+    setRecentCities(updatedRecent)
+    localStorage.setItem('recentCities', JSON.stringify(updatedRecent))
+
+    setNewLocation({ name: '', country: '', type: 'planned', fromDate: '', toDate: '', lat: '', lng: '', notes: '' })
     setShowAddForm(false)
   }
 
@@ -171,6 +191,28 @@ function AdminPanel() {
           {showAddForm && (
             <div className="add-form">
               <h3>Add New Location</h3>
+
+              {recentCities.length > 0 && (
+                <div className="recent-cities">
+                  <label>Recent Cities (click to use):</label>
+                  <div className="recent-cities-list">
+                    {recentCities.map((city, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        className="recent-city-btn"
+                        onClick={() => {
+                          const [cityName, country] = city.split(', ')
+                          setNewLocation({ ...newLocation, name: cityName, country: country || '' })
+                        }}
+                      >
+                        {city}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="form-grid">
                 <div className="form-group full-width">
                   <label>City Name *</label>
@@ -180,6 +222,7 @@ function AdminPanel() {
                       value={newLocation.name}
                       onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
                       placeholder="e.g., Mumbai, India"
+                      list="city-suggestions"
                     />
                     <button
                       type="button"
@@ -272,7 +315,10 @@ function AdminPanel() {
             {sortedLocations.map((location) => (
               <div key={location.id} className={`location-card ${location.type}`}>
                 <div className="location-card-header">
-                  <h3>{location.name}</h3>
+                  <h3>
+                    {location.name}
+                    {location.country && <span className="country-badge">{location.country}</span>}
+                  </h3>
                   <div className="location-actions">
                     <select
                       value={location.type}

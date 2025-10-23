@@ -107,6 +107,13 @@
   color: #1f2937;
 }
 
+.location-country {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
 .type-indicator {
   font-size: 1.2rem;
   line-height: 1;

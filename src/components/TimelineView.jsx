@@ -101,7 +101,10 @@ function TimelineView({ locations }) {
             <div key={location.id} className="gantt-row">
               <div className="gantt-location-column">
                 <div className="location-info">
-                  <strong>{location.name}</strong>
+                  <div>
+                    <strong>{location.name}</strong>
+                    {location.country && <div className="location-country">{location.country}</div>}
+                  </div>
                   <span className={`type-indicator ${location.type}`}>
                     {location.type === 'actual' ? '●' : '○'}
                   </span>

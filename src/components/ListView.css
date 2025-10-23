@@ -70,6 +70,13 @@
   font-size: 1rem;
 }
 
+.country-text {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
 .date-range {
   white-space: nowrap;
   font-weight: 500;
