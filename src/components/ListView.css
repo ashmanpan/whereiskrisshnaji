@@ -1,0 +1,139 @@
+.list-view {
+  width: 100%;
+}
+
+.list-view-header {
+  margin-bottom: 20px;
+}
+
+.list-view-header h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.3rem;
+}
+
+.table-container {
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.locations-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.locations-table thead {
+  background: #f9fafb;
+}
+
+.locations-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+
+.locations-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+  transition: background-color 0.2s;
+}
+
+.locations-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.locations-table td {
+  padding: 12px 16px;
+  color: #4b5563;
+}
+
+.location-row.planned {
+  border-left: 4px solid #3b82f6;
+}
+
+.location-row.actual {
+  border-left: 4px solid #10b981;
+}
+
+.row-number {
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.location-name strong {
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.date-range {
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.duration {
+  white-space: nowrap;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.type-cell {
+  text-align: center;
+}
+
+.type-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.type-badge.planned {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.type-badge.actual {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.coordinates {
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.notes {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-list {
+  padding: 60px 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .locations-table {
+    font-size: 0.8rem;
+  }
+
+  .locations-table th,
+  .locations-table td {
+    padding: 8px 10px;
+  }
+
+  .notes {
+    max-width: 100px;
+  }
+}

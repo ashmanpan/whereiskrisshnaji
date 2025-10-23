@@ -4,12 +4,15 @@ import Calendar from 'react-calendar'
 import 'react-calendar/dist/Calendar.css'
 import TravelMap from '../components/TravelMap'
 import LocationList from '../components/LocationList'
+import ListView from '../components/ListView'
+import TimelineView from '../components/TimelineView'
 import travelDataInitial from '../data/travelData.json'
 import '../App.css'
 
 function HomePage() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [locations, setLocations] = useState([])
+  const [viewMode, setViewMode] = useState('map') // 'map', 'list', 'timeline'
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -80,19 +83,50 @@ function HomePage() {
         </div>
 
         <div className="map-section">
-          <h2>Travel Map</h2>
-          <p className="map-info">
-            {getLocationsForDate(selectedDate).length > 0
-              ? `Showing locations for ${selectedDate.toLocaleDateString()}`
-              : 'Showing all locations'}
-          </p>
-          <TravelMap
-            locations={
-              getLocationsForDate(selectedDate).length > 0
-                ? getLocationsForDate(selectedDate)
-                : locations
-            }
-          />
+          <div className="view-header">
+            <h2>Travel Visualization</h2>
+            <div className="view-toggle">
+              <button
+                className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
+                onClick={() => setViewMode('map')}
+              >
+                🗺️ Map
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+              >
+                📋 List
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+                onClick={() => setViewMode('timeline')}
+              >
+                📊 Timeline
+              </button>
+            </div>
+          </div>
+
+          {viewMode === 'map' && (
+            <>
+              <p className="map-info">
+                {getLocationsForDate(selectedDate).length > 0
+                  ? `Showing locations for ${selectedDate.toLocaleDateString()}`
+                  : 'Showing all locations'}
+              </p>
+              <TravelMap
+                locations={
+                  getLocationsForDate(selectedDate).length > 0
+                    ? getLocationsForDate(selectedDate)
+                    : locations
+                }
+              />
+            </>
+          )}
+
+          {viewMode === 'list' && <ListView locations={locations} />}
+
+          {viewMode === 'timeline' && <TimelineView locations={locations} />}
         </div>
       </div>
     </div>
