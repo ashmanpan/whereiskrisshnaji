@@ -168,12 +168,13 @@ for route in "GET /locations" "POST /locations" "PUT /locations/{id}" "DELETE /l
 done
 
 # Add Lambda permission for API Gateway
+# Use a specific statement ID that includes API ID to avoid conflicts
 aws lambda add-permission \
   --function-name $FUNCTION_NAME \
-  --statement-id apigateway-invoke \
+  --statement-id "apigateway-${API_ID}-invoke" \
   --action lambda:InvokeFunction \
   --principal apigateway.amazonaws.com \
-  --source-arn "arn:aws:execute-api:$REGION:*:$API_ID/*" \
+  --source-arn "arn:aws:execute-api:$REGION:*:$API_ID/*/*" \
   --region $REGION 2>/dev/null || echo "✓ Lambda permission already exists"
 
 # Create or update stage

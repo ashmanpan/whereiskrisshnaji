@@ -21,8 +21,17 @@ exports.handler = async (event) => {
     "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,OPTIONS"
   };
 
+  // Extract method and path from either HTTP API v2.0 or REST API format
+  const method = event.requestContext?.http?.method || event.httpMethod;
+  const rawPath = event.requestContext?.http?.path || event.path || "";
+
+  // Remove /prod prefix if present
+  const path = rawPath.replace(/^\/prod/, "") || "/";
+
+  console.log("Parsed method:", method, "path:", path);
+
   // Handle OPTIONS request for CORS
-  if (event.httpMethod === "OPTIONS") {
+  if (method === "OPTIONS") {
     return {
       statusCode: 200,
       headers,
@@ -31,8 +40,6 @@ exports.handler = async (event) => {
   }
 
   try {
-    const method = event.httpMethod;
-    const path = event.path;
 
     // GET /locations - Get all locations
     if (method === "GET" && path === "/locations") {
