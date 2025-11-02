@@ -62,12 +62,22 @@ function HomePage() {
       <header className="header">
         <div className="header-content">
           <h1>Where is Krishnaji?</h1>
-          <button
-            className="admin-link-btn"
-            onClick={() => navigate('/login')}
-          >
-            Admin Login
-          </button>
+          <div className="header-actions">
+            <a
+              href="https://krishnajipanse.com"
+              className="portfolio-link-btn"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View Portfolio
+            </a>
+            <button
+              className="admin-link-btn"
+              onClick={() => navigate('/login')}
+            >
+              Admin Login
+            </button>
+          </div>
         </div>
         <div className="legend">
           <div className="legend-item">
