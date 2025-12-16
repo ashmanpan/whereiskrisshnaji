@@ -38,13 +38,20 @@ function HomePage() {
     loadLocations()
   }, [])
 
+  const formatDateToLocal = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   const getLocationsForDate = (date) => {
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = formatDateToLocal(date)
     return locations.filter(loc => loc.date === dateStr)
   }
 
   const getTileClassName = ({ date }) => {
-    const dateStr = date.toISOString().split('T')[0]
+    const dateStr = formatDateToLocal(date)
     const dayLocations = locations.filter(loc => loc.date === dateStr)
 
     if (dayLocations.length === 0) return null

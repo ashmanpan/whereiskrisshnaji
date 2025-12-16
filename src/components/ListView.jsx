@@ -7,7 +7,7 @@ function ListView({ locations }) {
   const sortedLocations = [...locations].sort((a, b) => {
     const dateA = new Date(a.fromDate || a.date)
     const dateB = new Date(b.fromDate || b.date)
-    return dateA - dateB
+    return dateB - dateA // Latest first
   })
 
   const formatDateRange = (location) => {
