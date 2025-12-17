@@ -159,7 +159,7 @@ INTEGRATION_ID=$(aws apigatewayv2 create-integration \
 echo "✓ Created integration: $INTEGRATION_ID"
 
 # Create routes
-for route in "GET /locations" "POST /locations" "PUT /locations/{id}" "DELETE /locations/{id}"; do
+for route in "GET /locations" "POST /locations" "PUT /locations/{id}" "DELETE /locations/{id}" "GET /status" "POST /app-location" "PUT /privacy"; do
   aws apigatewayv2 create-route \
     --api-id $API_ID \
     --route-key "$route" \
